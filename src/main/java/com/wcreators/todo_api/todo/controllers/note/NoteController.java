@@ -44,6 +44,8 @@ public class NoteController {
 
     @PostMapping
     public ResponseEntity<EntityModel<Note>> create(@RequestBody NoteDto noteDto) {
+        System.out.println("A§Aaaaaaassssss");
+        System.out.println(noteDto.toString());
         Note note = repository.save(
                 Note.builder()
                         .title(noteDto.getTitle())
