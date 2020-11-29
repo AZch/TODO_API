@@ -27,7 +27,7 @@ public class NoteController {
     @GetMapping
     public CollectionModel<EntityModel<Note>> all() {
         List<EntityModel<Note>> notes = repository
-                .findAll()
+                .findAllByDeletedFalse()
                 .stream()
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
@@ -37,15 +37,13 @@ public class NoteController {
     @GetMapping("/{id}")
     public EntityModel<Note> one(@PathVariable Long id) {
         Note note = repository
-                .findById(id)
+                .findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> noteNotFoundById(id));
         return assembler.toModel(note);
     }
 
     @PostMapping
     public ResponseEntity<EntityModel<Note>> create(@RequestBody NoteDto noteDto) {
-        System.out.println("A§Aaaaaaassssss");
-        System.out.println(noteDto.toString());
         Note note = repository.save(
                 Note.builder()
                         .title(noteDto.getTitle())
@@ -63,7 +61,7 @@ public class NoteController {
     @PutMapping("/{id}")
     public ResponseEntity<EntityModel<Note>> editNote(@RequestBody NoteDto noteDto, @PathVariable Long id) {
         Note updatedNote = repository
-                .findById(id)
+                .findByIdAndDeletedFalse(id)
                 .map(note -> {
                     note.setTitle(noteDto.getTitle());
                     note.setContent(noteDto.getContent());
@@ -79,7 +77,12 @@ public class NoteController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNote(@PathVariable Long id) {
-        repository.deleteById(id);
+        repository
+                .findByIdAndDeletedFalse(id)
+                .map(note -> {
+                    note.setDeleted(true);
+                    return repository.save(note);
+                });
         return ResponseEntity.noContent().build();
     }
 

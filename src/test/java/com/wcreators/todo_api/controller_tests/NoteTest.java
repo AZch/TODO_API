@@ -38,7 +38,7 @@ public class NoteTest {
 
     @Test
     public void shouldFindNoNotesIfRepositoryIsEmpty() throws Exception {
-        when(repository.findAll()).thenReturn(new ArrayList<>());
+        when(repository.findAllByDeletedFalse()).thenReturn(new ArrayList<>());
 
         mockMvc
                 .perform(get("/notes"))
@@ -53,7 +53,7 @@ public class NoteTest {
                 .title("title")
                 .content("content")
                 .build();
-        when(repository.findById(1L)).thenReturn(Optional.of(note));
+        when(repository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(note));
 
         mockMvc
                 .perform(get("/notes/1"))
@@ -69,7 +69,7 @@ public class NoteTest {
                 Note.builder().id(1L).title("1T").content("1C").build(),
                 Note.builder().id(2L).title("2T").content("2C").build()
         );
-        when(repository.findAll()).thenReturn(noteList);
+        when(repository.findAllByDeletedFalse()).thenReturn(noteList);
 
         mockMvc
                 .perform(get("/notes"))
@@ -134,7 +134,7 @@ public class NoteTest {
                 .content(note.getContent())
                 .build();
 
-        when(repository.findById(note.getId())).thenReturn(Optional.of(note));
+        when(repository.findByIdAndDeletedFalse(note.getId())).thenReturn(Optional.of(note));
         when(repository.save(note.withTitle("new title"))).thenReturn(expectedNote);
 
         mockMvc
@@ -153,7 +153,9 @@ public class NoteTest {
     public void shouldDeleteNote() throws Exception {
         Note note = Note.builder().id(1L).title("").content("").build();
 
-        doNothing().when(repository).deleteById(note.getId());
+        when(repository.findByIdAndDeletedFalse(note.getId())).thenReturn(Optional.of(note));
+        Note deletedNote = note.withDeleted(true);
+        when(repository.save(deletedNote)).thenReturn(deletedNote);
 
         mockMvc
                 .perform(delete("/notes/1"))

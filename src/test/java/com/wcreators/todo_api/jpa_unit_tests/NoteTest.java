@@ -19,7 +19,7 @@ public class NoteTest {
 
     @Test
     public void shouldFindNoNotesIfRepositoryIsEmpty() {
-        Iterable<Note> actualNotes = repository.findAll();
+        Iterable<Note> actualNotes = repository.findAllByDeletedFalse();
         assertThat(actualNotes).isEmpty();
     }
 
@@ -31,7 +31,7 @@ public class NoteTest {
                 .build();
 
         Note expected = repository.save(note);
-        Note actual = repository.findById(expected.getId()).orElseThrow();
+        Note actual = repository.findByIdAndDeletedFalse(expected.getId()).orElseThrow();
         assertThat(actual).isEqualTo(expected);
     }
 
@@ -42,7 +42,7 @@ public class NoteTest {
                 Note.builder().title("2").content("2").build()
         ));
 
-        Iterable<Note> actualNotes = repository.findAll();
+        Iterable<Note> actualNotes = repository.findAllByDeletedFalse();
         assertThat(actualNotes).hasSize(2);
     }
 
@@ -60,15 +60,18 @@ public class NoteTest {
                 .title("new title")
                 .content("content")
                 .build();
-        Note actualNote = repository.findById(baseNote.getId()).orElseThrow();
+        Note actualNote = repository.findByIdAndDeletedFalse(baseNote.getId()).orElseThrow();
         assertThat(actualNote).isEqualToIgnoringGivenFields(expectedNote, "id");
     }
 
     @Test
     public void shouldDeleteNote() {
-        Note note = repository.save(Note.builder().title("").content("").build());
-        repository.deleteById(note.getId());
-        Optional<Note> actualNote = repository.findById(note.getId());
-        assertThat(actualNote).isEmpty();
+        Note note = repository.save(Note.builder().title("").content("").deleted(true).build());
+
+        Optional<Note> actualThisNote = repository.findById(note.getId());
+        assertThat(actualThisNote).isEqualTo(Optional.of(note));
+
+        Optional<Note> actualNonIdNote = repository.findByIdAndDeletedFalse(note.getId());
+        assertThat(actualNonIdNote).isEmpty();
     }
 }

@@ -20,4 +20,6 @@ public class Note {
     private String title;
 
     private String content;
+
+    private boolean deleted = false;
 }
