@@ -28,7 +28,9 @@ public class AuthController {
 
     @PostMapping(Routes.Auth.SIGNUP)
     public String signup(@RequestBody @Valid RegistrationRequestDTO body) {
-        userService.saveUser(body);
+        if (userService.saveUser(body).isEmpty()) {
+            throw new BadRequestException(Errors.AuthError.USERNAME_ALREADY_IN_USE);
+        }
         return "OK";
     }
 

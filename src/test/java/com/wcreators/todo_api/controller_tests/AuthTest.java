@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wcreators.todo_api.configs.security.details.CustomUserDetailsService;
 import com.wcreators.todo_api.configs.security.jwt.JwtFilter;
 import com.wcreators.todo_api.configs.security.jwt.JwtProvider;
+import com.wcreators.todo_api.constants.Roles;
 import com.wcreators.todo_api.constants.Routes;
 import com.wcreators.todo_api.user.controllers.auth.AuthController;
 import com.wcreators.todo_api.user.dto.AuthRequestDTO;
+import com.wcreators.todo_api.user.dto.RegistrationRequestDTO;
+import com.wcreators.todo_api.user.entities.Role;
 import com.wcreators.todo_api.user.entities.User;
 import com.wcreators.todo_api.user.repositories.RoleRepository;
 import com.wcreators.todo_api.user.repositories.UserRepository;
@@ -49,7 +52,7 @@ public class AuthTest {
     @Autowired
     private JwtProvider jwtProvider;
 
-    @Autowired
+    @MockBean
     private PasswordEncoder passwordEncoder;
 
     @Nested
@@ -79,11 +82,13 @@ public class AuthTest {
             String expectedUsername = "expected_username";
             String password = "password";
 
+            when(passwordEncoder.matches(password, password)).thenReturn(true);
+
             when(userRepository.findByUsername(expectedUsername)).thenReturn(
                     Optional.of(
                             User.builder()
                                     .username(expectedUsername)
-                                    .password(passwordEncoder.encode(password))
+                                    .password(password)
                                     .build()
                     )
             );
@@ -108,11 +113,13 @@ public class AuthTest {
             String actualPassword = "actual_password";
             String expectedPassword = "expected_password";
 
+            when(passwordEncoder.matches(actualPassword, expectedPassword)).thenReturn(false);
+
             when(userRepository.findByUsername(username)).thenReturn(
                     Optional.of(
                             User.builder()
                                     .username(username)
-                                    .password(passwordEncoder.encode(expectedPassword))
+                                    .password(expectedPassword)
                                     .build()
                     )
             );
@@ -151,11 +158,13 @@ public class AuthTest {
             String username = "username";
             String password = "password";
 
+            when(passwordEncoder.matches(password, password)).thenReturn(true);
+
             when(userRepository.findByUsername(username)).thenReturn(
                     Optional.of(
                             User.builder()
                                     .username(username)
-                                    .password(passwordEncoder.encode(password))
+                                    .password(password)
                                     .build()
                     )
             );
@@ -178,18 +187,98 @@ public class AuthTest {
     @Nested
     class SignUp {
         @Test
-        public void shouldFailureSignUpUserAlreadyExist() {
+        public void shouldFailureSignUpUserAlreadyExist() throws Exception {
+            String username = "username";
+            String password = "password";
 
+            when(roleRepository.findByName(Roles.USER.getName())).thenReturn(
+                    Optional.of(
+                        Role.builder()
+                                .name(Roles.USER.getName())
+                                .build()
+                    )
+            );
+
+            when(userRepository.findByUsername(username)).thenReturn(
+                    Optional.of(
+                            User.builder()
+                                    .username(username)
+                                    .password(password)
+                                    .role(
+                                            Role.builder()
+                                                    .name(Roles.USER.getName())
+                                                    .build()
+                                    )
+                                    .build()
+                    )
+            );
+
+            RegistrationRequestDTO registrationRequestDTO = RegistrationRequestDTO.builder()
+                    .username(username)
+                    .password(password)
+                    .build();
+            mockMvc
+                    .perform(
+                            post(String.format("%s%s", Routes.Auth.BASE, Routes.Auth.SIGNUP))
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(new ObjectMapper().writeValueAsString(registrationRequestDTO))
+                    )
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
-        public void shouldFilureSignUpValidation() {
-
+        public void shouldFailureSignUpValidation() throws Exception {
+            RegistrationRequestDTO registrationRequestDTO = RegistrationRequestDTO.builder()
+                    .username("")
+                    .password("")
+                    .build();
+            mockMvc
+                    .perform(
+                            post(String.format("%s%s", Routes.Auth.BASE, Routes.Auth.SIGNUP))
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(new ObjectMapper().writeValueAsString(registrationRequestDTO))
+                    )
+                    .andExpect(status().isBadRequest());
         }
 
         @Test
-        public void shouldSuccessfullySignUp() {
+        public void shouldSuccessfullySignUp() throws Exception {
+            String username = "username";
+            String password = "password";
+            Role role = Role.builder()
+                    .name(Roles.USER.getName())
+                    .build();
+            User user = User.builder()
+                    .username(username)
+                    .password(passwordEncoder.encode(password))
+                    .role(role)
+                    .build();
 
+            when(passwordEncoder.encode(password)).thenReturn(password);
+
+            when(roleRepository.findByName(Roles.USER.getName())).thenReturn(Optional.of(role));
+
+            when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+            when(userRepository.save(
+                    User.builder()
+                            .username(username)
+                            .password(passwordEncoder.encode(password))
+                            .role(role)
+                            .build()
+            )).thenReturn(user);
+
+            RegistrationRequestDTO registrationRequestDTO = RegistrationRequestDTO.builder()
+                    .username(username)
+                    .password(password)
+                    .build();
+            mockMvc
+                    .perform(
+                            post(String.format("%s%s", Routes.Auth.BASE, Routes.Auth.SIGNUP))
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(new ObjectMapper().writeValueAsString(registrationRequestDTO))
+                    )
+                    .andExpect(status().isOk());
         }
     }
 }

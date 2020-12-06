@@ -20,16 +20,22 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User saveUser(RegistrationRequestDTO registrationRequestDTO) {
+    public Optional<User> saveUser(RegistrationRequestDTO registrationRequestDTO) {
         Role role = roleRepository
                 .findByName(Roles.USER.getName())
                 .orElseGet(() -> roleRepository.save(Role.builder().name(Roles.USER.getName()).build()));
-        return userRepository.save(
-                User.builder()
-                        .username(registrationRequestDTO.getUsername())
-                        .password(passwordEncoder.encode(registrationRequestDTO.getPassword()))
-                        .role(role)
-                        .build()
+        Optional<User> isUserExist = userRepository.findByUsername(registrationRequestDTO.getUsername());
+        if (isUserExist.isPresent()) {
+            return Optional.empty();
+        }
+        return Optional.of(
+                userRepository.save(
+                        User.builder()
+                                .username(registrationRequestDTO.getUsername())
+                                .password(passwordEncoder.encode(registrationRequestDTO.getPassword()))
+                                .role(role)
+                                .build()
+            )
         );
     }
 
