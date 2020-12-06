@@ -1,6 +1,7 @@
 package com.wcreators.todo_api.user.controllers.auth;
 
 import com.wcreators.todo_api.configs.security.jwt.JwtProvider;
+import com.wcreators.todo_api.constants.Errors;
 import com.wcreators.todo_api.constants.Routes;
 import com.wcreators.todo_api.exceptions.BadRequestException;
 import com.wcreators.todo_api.user.dto.AuthRequestDTO;
@@ -35,7 +36,7 @@ public class AuthController {
     public AuthResponseDTO signIn(@RequestBody @Valid AuthRequestDTO body) throws BadRequestException {
         Optional<User> user = userService.findByUsernameAndPassword(body.getUsername(), body.getPassword());
         if (user.isEmpty()) {
-            throw new BadRequestException("Username or Password incorrect");
+            throw new BadRequestException(Errors.AuthError.USERNAME_OR_PASSWORD_INCORRECT);
         }
         String token = jwtProvider.generateToken(user.get().getUsername());
         return AuthResponseDTO.builder().token(token).build();
