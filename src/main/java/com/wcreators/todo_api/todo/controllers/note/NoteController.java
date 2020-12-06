@@ -1,5 +1,6 @@
 package com.wcreators.todo_api.todo.controllers.note;
 
+import com.wcreators.todo_api.constants.Routes;
 import com.wcreators.todo_api.exceptions.EntityNotFoundException;
 import com.wcreators.todo_api.todo.controllers.note.dto.NoteDto;
 import com.wcreators.todo_api.todo.entities.Note;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/notes")
+@RequestMapping(Routes.Notes.BASE)
 @RequiredArgsConstructor
 public class NoteController {
 
@@ -34,7 +35,7 @@ public class NoteController {
         return collectionAssembler.toModel(notes);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(Routes.Notes.GET_ONE)
     public EntityModel<Note> one(@PathVariable Long id) {
         Note note = repository
                 .findByIdAndDeletedFalse(id)
@@ -58,7 +59,7 @@ public class NoteController {
                 .body(entityModel);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(Routes.Notes.EDIT)
     public ResponseEntity<EntityModel<Note>> editNote(@RequestBody NoteDto noteDto, @PathVariable Long id) {
         Note updatedNote = repository
                 .findByIdAndDeletedFalse(id)
@@ -75,7 +76,7 @@ public class NoteController {
                 .body(entityModel);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping(Routes.Notes.DELETE)
     public ResponseEntity<?> deleteNote(@PathVariable Long id) {
         repository
                 .findByIdAndDeletedFalse(id)

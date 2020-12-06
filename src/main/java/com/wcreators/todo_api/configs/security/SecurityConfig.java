@@ -1,6 +1,8 @@
 package com.wcreators.todo_api.configs.security;
 
 import com.wcreators.todo_api.configs.security.jwt.JwtFilter;
+import com.wcreators.todo_api.constants.Roles;
+import com.wcreators.todo_api.constants.Routes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -34,9 +36,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                     .authorizeRequests()
-    //                    .antMatchers("/admin/*").hasRole("ADMIN")
-                        .antMatchers("/notes**").hasRole("USER")
-                        .antMatchers("/auth/*").permitAll()
+                        .antMatchers(String.format("%s**", Routes.Notes.BASE)).hasRole(Roles.USER.getName())
+                        .antMatchers(String.format("%s/*", Routes.Auth.BASE)).permitAll()
                 .and()
                     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
