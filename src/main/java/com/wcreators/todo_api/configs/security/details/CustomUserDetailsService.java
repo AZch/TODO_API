@@ -1,5 +1,6 @@
 package com.wcreators.todo_api.configs.security.details;
 
+import com.wcreators.todo_api.exceptions.EntityNotFoundException;
 import com.wcreators.todo_api.user.entities.User;
 import com.wcreators.todo_api.user.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public CustomUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userService.findByUserName(username).orElseThrow();
+        User user = userService.findByUserName(username).orElseThrow(() -> new EntityNotFoundException("User", "username", username));
         return CustomUserDetails.fromUserToCustomUserDetails(user);
     }
 }

@@ -25,6 +25,7 @@ import static org.springframework.util.StringUtils.hasText;
 public class JwtFilter extends GenericFilterBean {
 
     public static final String AUTHORIZATION = "Authorization";
+    public static final String TOKEN_START_WITH = "Bearer ";
 
     @Autowired
     private JwtProvider jwtProvider;
@@ -47,7 +48,7 @@ public class JwtFilter extends GenericFilterBean {
 
     private String getTokenFromRequest(HttpServletRequest request) {
         String bearer = request.getHeader(AUTHORIZATION);
-        if (hasText(bearer) && bearer.startsWith("Bearer ")) {
+        if (hasText(bearer) && bearer.startsWith(TOKEN_START_WITH)) {
             return bearer.substring(7);
         }
         return null;
