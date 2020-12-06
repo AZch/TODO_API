@@ -1,11 +1,11 @@
 package com.wcreators.todo_api.controller_tests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wcreators.todo_api.configs.security.SecurityConfig;
 import com.wcreators.todo_api.configs.security.details.CustomUserDetailsService;
 import com.wcreators.todo_api.configs.security.jwt.JwtFilter;
 import com.wcreators.todo_api.configs.security.jwt.JwtProvider;
 import com.wcreators.todo_api.constants.Roles;
+import com.wcreators.todo_api.constants.Routes;
 import com.wcreators.todo_api.todo.controllers.note.CollectionAssembler;
 import com.wcreators.todo_api.todo.controllers.note.ModelAssembler;
 import com.wcreators.todo_api.todo.controllers.note.NoteController;
@@ -17,9 +17,7 @@ import com.wcreators.todo_api.user.entities.User;
 import com.wcreators.todo_api.user.repositories.RoleRepository;
 import com.wcreators.todo_api.user.repositories.UserRepository;
 import com.wcreators.todo_api.user.services.UserService;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,7 +34,6 @@ import java.util.Optional;
 import static com.wcreators.todo_api.configs.security.jwt.JwtFilter.AUTHORIZATION;
 import static com.wcreators.todo_api.configs.security.jwt.JwtFilter.TOKEN_START_WITH;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -49,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         JwtFilter.class,
         JwtProvider.class,
         CustomUserDetailsService.class,
-        UserService.class,
+        UserService.class
 })
 public class NoteTest {
 
@@ -100,7 +97,7 @@ public class NoteTest {
         when(repository.findAllByDeletedFalse()).thenReturn(new ArrayList<>());
 
         mockMvc
-                .perform(get("/notes").header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
+                .perform(get(Routes.Notes.BASE).header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded").doesNotExist());
     }
@@ -116,7 +113,7 @@ public class NoteTest {
         when(repository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(note));
 
         mockMvc
-                .perform(get("/notes/1").header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
+                .perform(get(String.format("%s/1", Routes.Notes.BASE)).header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(note.getId()))
                 .andExpect(jsonPath("$.title").value(note.getTitle()))
@@ -133,7 +130,7 @@ public class NoteTest {
         when(repository.findAllByDeletedFalse()).thenReturn(noteList);
 
         mockMvc
-                .perform(get("/notes").header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
+                .perform(get(Routes.Notes.BASE).header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.notes[*]").isArray())
                 .andExpect(jsonPath("$._embedded.notes[*]", hasSize(2)))
@@ -168,7 +165,7 @@ public class NoteTest {
 
         mockMvc
                 .perform(
-                        post("/notes")
+                        post(Routes.Notes.BASE)
                                 .header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(new ObjectMapper().writeValueAsString(actualNote))
@@ -203,7 +200,7 @@ public class NoteTest {
 
         mockMvc
                 .perform(
-                        put("/notes/1")
+                        put(String.format("%s/1", Routes.Notes.BASE))
                                 .header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(new ObjectMapper().writeValueAsString(noteDto))
@@ -224,7 +221,7 @@ public class NoteTest {
         when(repository.save(deletedNote)).thenReturn(deletedNote);
 
         mockMvc
-                .perform(delete("/notes/1").header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
+                .perform(delete(String.format("%s/1", Routes.Notes.BASE)).header(AUTHORIZATION, String.format("%s%s", TOKEN_START_WITH, TOKEN)))
                 .andExpect(status().isNoContent());
     }
 }
