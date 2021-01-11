@@ -4,6 +4,7 @@ import com.wcreators.todo_api.configs.security.jwt.JwtProvider;
 import com.wcreators.todo_api.constants.Errors;
 import com.wcreators.todo_api.constants.Routes;
 import com.wcreators.todo_api.exceptions.BadRequestException;
+import com.wcreators.todo_api.exceptions.EntityNotFoundException;
 import com.wcreators.todo_api.user.dto.AuthRequestDTO;
 import com.wcreators.todo_api.user.dto.AuthResponseDTO;
 import com.wcreators.todo_api.user.dto.RegistrationRequestDTO;
@@ -42,5 +43,9 @@ public class AuthController {
         }
         String token = jwtProvider.generateToken(user.get().getUsername());
         return AuthResponseDTO.builder().token(token).build();
+    }
+
+    public static RuntimeException userNotFoundByUsername(String username) {
+        return new EntityNotFoundException("user", "username", username);
     }
 }
