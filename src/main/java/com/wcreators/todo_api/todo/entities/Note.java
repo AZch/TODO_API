@@ -1,10 +1,15 @@
 package com.wcreators.todo_api.todo.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.wcreators.todo_api.user.entities.User;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -22,4 +27,8 @@ public class Note {
     private String content;
 
     private boolean deleted = false;
+
+    @JsonIgnore
+    @ManyToMany(mappedBy = "notes", fetch = FetchType.LAZY)
+    private Set<User> users = new HashSet<>();
 }

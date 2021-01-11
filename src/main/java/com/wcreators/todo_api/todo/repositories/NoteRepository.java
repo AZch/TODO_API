@@ -7,7 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface NoteRepository extends JpaRepository<Note, Long> {
+    List<Note> findByUsersUsernameAndDeletedFalse(String username);
+
     List<Note> findAllByDeletedFalse();
+
+    Optional<Note> findByIdAndUsersUsernameAndDeletedFalse(Long id, String username);
 
     Optional<Note> findByIdAndDeletedFalse(Long id);
 }
